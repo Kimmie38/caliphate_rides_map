@@ -1,0 +1,14 @@
+# Render Blueprint: deploys Caliphate Rides road routing for Sokoto.
+# In Render: New → Blueprint → pick this repository. See render/README.md.
+services:
+  - type: web
+    name: caliphate-routing
+    runtime: docker
+    dockerfilePath: ./render/routing/Dockerfile
+    dockerContext: ./render/routing
+    region: frankfurt        # closest Render region to Nigeria
+    plan: 0.5c-512mb         # enough for Sokoto State; move up to 1c-2g if it runs out of memory
+    healthCheckPath: /nearest/v1/driving/5.2310,13.0482
+    envVars:
+      - key: PORT
+        value: 10000

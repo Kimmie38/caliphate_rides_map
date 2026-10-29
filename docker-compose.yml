@@ -1,0 +1,50 @@
+# Caliphate Rides map server: our own Sokoto map, routes and place search.
+#   tiles  - Martin serves the vector map tiles and the label fonts
+#   osrm   - road routing (distance, time and the route line for every trip)
+#   photon - place search
+#   caddy  - one HTTPS address in front of all three
+# Build the data first: ./scripts/build-all.sh  (see README.md)
+
+services:
+  tiles:
+    image: ghcr.io/maplibre/martin:latest
+    restart: unless-stopped
+    command: ["/data/sokoto.mbtiles", "--font", "/fonts", "--listen-addresses", "0.0.0.0:3000"]
+    volumes:
+      - ./data/sokoto.mbtiles:/data/sokoto.mbtiles:ro
+      - ./data/fonts:/fonts:ro
+
+  osrm:
+    image: ghcr.io/project-osrm/osrm-backend:latest
+    restart: unless-stopped
+    command: ["osrm-routed", "--algorithm", "mld", "--max-table-size", "1000", "/data/osrm/sokoto.osrm"]
+    volumes:
+      - ./data/osrm:/data/osrm:ro
+
+  photon:
+    build:
+      context: ./photon
+      args:
+        PHOTON_VERSION: ${PHOTON_VERSION:-1.3.0}
+    restart: unless-stopped
+    command: ["serve", "-listen-ip", "0.0.0.0", "-cors-any"]
+    volumes:
+      - ./data/photon/photon_data:/photon/photon_data
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      MAP_DOMAIN: ${MAP_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [tiles, osrm, photon]
+
+volumes:
+  caddy_data:
+  caddy_config:

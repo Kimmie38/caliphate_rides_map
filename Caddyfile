@@ -1,0 +1,29 @@
+# One HTTPS address for the whole map service.
+#   https://MAP_DOMAIN/tiles/sokoto                        map tiles (TileJSON)
+#   https://MAP_DOMAIN/tiles/font/{fontstack}/{range}      label fonts
+#   https://MAP_DOMAIN/osrm/route/v1/driving/...           routes
+#   https://MAP_DOMAIN/photon/api?q=...                    place search
+
+{$MAP_DOMAIN} {
+	encode zstd gzip
+
+	handle_path /tiles/* {
+		# Tell Martin its public path, so the tile links it hands out include /tiles.
+		reverse_proxy tiles:3000 {
+			header_up X-Rewrite-URL {http.request.orig_uri.path}
+		}
+		header Cache-Control "public, max-age=86400"
+	}
+
+	handle_path /osrm/* {
+		reverse_proxy osrm:5000
+	}
+
+	handle_path /photon/* {
+		reverse_proxy photon:2322
+	}
+
+	handle {
+		respond "Caliphate Rides map server" 200
+	}
+}
