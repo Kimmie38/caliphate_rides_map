@@ -52,6 +52,44 @@ Until this is running, the app uses free public servers for the same things (Ope
    ```
    You should see `200` for tiles and fonts, a distance for the route (Babbar Kasuwa to UDUS City Campus), and a place name for the search.
 
+## On a VPS that already runs Nginx Proxy Manager (our Contabo server)
+
+Caddy isn't used there (Nginx Proxy Manager already owns ports 80 and 443). Each part runs as its own
+container on the `proxy` network and gets its own address in Nginx Proxy Manager:
+
+| Address | Container | Port | Started by |
+|---|---|---|---|
+| `routing.caliphaterides.com.ng` | `caliphate-routing` | 5000 | already running |
+| `tiles.caliphaterides.com.ng` | `caliphate-tiles` | 3000 | `./scripts/vps-tiles.sh` |
+
+```bash
+cd /opt/caliphate_rides_map
+git pull
+chmod +x scripts/*.sh
+./scripts/vps-tiles.sh
+```
+
+Then add a Cloudflare A record `tiles` → the server's IP (DNS only), and in Nginx Proxy Manager a
+proxy host `tiles.caliphaterides.com.ng` → `caliphate-tiles` port `3000` with an SSL certificate.
+
+App (`.env` and `eas.json`):
+
+```bash
+EXPO_PUBLIC_MAP_TILES_URL=https://tiles.caliphaterides.com.ng/sokoto
+EXPO_PUBLIC_MAP_GLYPHS_URL=https://tiles.caliphaterides.com.ng/font/{fontstack}/{range}
+```
+
+Backend `.env` (the admin's "Map places" page):
+
+```bash
+MAP_TILES_URL=https://tiles.caliphaterides.com.ng/sokoto
+MAP_GLYPHS_URL=https://tiles.caliphaterides.com.ng/font/{fontstack}/{range}
+```
+
+Outside Sokoto State the app switches to the public map by itself, so testers elsewhere still see streets.
+Monthly refresh: `./scripts/01-download.sh && ./scripts/04-routing.sh && ./scripts/vps-tiles.sh --rebuild`,
+then `docker restart caliphate-routing`.
+
 ## Point the app at it
 
 In the app's `.env` (replace the domain with yours):
