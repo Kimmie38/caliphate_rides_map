@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds all the map data for Sokoto: tiles, fonts, routing and search.
+# Builds all the map data for our states (Sokoto, Kano, Kaduna, FCT, Plateau): tiles, fonts, routing and search.
 # Run from the map-server folder:  ./scripts/build-all.sh
 # Re-run whenever you want fresh OpenStreetMap data (e.g. monthly), then: docker compose restart
 set -euo pipefail

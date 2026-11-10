@@ -1,4 +1,4 @@
-# Caliphate Rides map server: our own Sokoto map, routes and place search.
+# Caliphate Rides map server: our own map (Sokoto, Kano, Kaduna, FCT and Plateau), routes and place search.
 #   tiles  - Martin serves the vector map tiles and the label fonts
 #   osrm   - road routing (distance, time and the route line for every trip)
 #   photon - place search
@@ -9,15 +9,16 @@ services:
   tiles:
     image: ghcr.io/maplibre/martin:latest
     restart: unless-stopped
-    command: ["/data/sokoto.mbtiles", "--font", "/fonts", "--listen-addresses", "0.0.0.0:3000"]
+    command: ["--config", "/config/martin.yaml"]
     volumes:
-      - ./data/sokoto.mbtiles:/data/sokoto.mbtiles:ro
+      - ./data/caliphate.mbtiles:/data/caliphate.mbtiles:ro
       - ./data/fonts:/fonts:ro
+      - ./martin.yaml:/config/martin.yaml:ro
 
   osrm:
     image: ghcr.io/project-osrm/osrm-backend:latest
     restart: unless-stopped
-    command: ["osrm-routed", "--algorithm", "mld", "--max-table-size", "1000", "/data/osrm/sokoto.osrm"]
+    command: ["osrm-routed", "--algorithm", "mld", "--mmap", "--max-table-size", "1000", "/data/osrm/caliphate.osrm"]
     volumes:
       - ./data/osrm:/data/osrm:ro
 

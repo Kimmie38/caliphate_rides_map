@@ -1,5 +1,5 @@
 # One HTTPS address for the whole map service.
-#   https://MAP_DOMAIN/tiles/sokoto                        map tiles (TileJSON)
+#   https://MAP_DOMAIN/tiles/caliphate                     map tiles (TileJSON; /tiles/sokoto still works)
 #   https://MAP_DOMAIN/tiles/font/{fontstack}/{range}      label fonts
 #   https://MAP_DOMAIN/osrm/route/v1/driving/...           routes
 #   https://MAP_DOMAIN/photon/api?q=...                    place search

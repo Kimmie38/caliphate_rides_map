@@ -59,43 +59,53 @@ container on the `proxy` network and gets its own address in Nginx Proxy Manager
 
 | Address | Container | Port | Started by |
 |---|---|---|---|
-| `routing.caliphaterides.com.ng` | `caliphate-routing` | 5000 | already running |
+| `routing.caliphaterides.com.ng` | `caliphate-routing` | 5000 | `./scripts/vps-routing.sh` |
 | `tiles.caliphaterides.com.ng` | `caliphate-tiles` | 3000 | `./scripts/vps-tiles.sh` |
+
+The map covers **Sokoto, Kano, Kaduna, FCT (Abuja) and Plateau** (the boxes in `regions.geojson`).
 
 ```bash
 cd /opt/caliphate_rides_map
 git pull
 chmod +x scripts/*.sh
-./scripts/vps-tiles.sh
+free -h && df -h .                 # need about 4 GB of memory and 15 GB of free disk
+./scripts/01-download.sh           # Nigeria from OpenStreetMap, cut to our 5 states
+./scripts/vps-tiles.sh --rebuild   # map tiles: 20–60 minutes
+./scripts/vps-routing.sh --rebuild # road routing: 10–30 minutes
 ```
+
+Both scripts finish by testing each city. The old map and routing keep working while the new ones build.
+Run the long builds inside `tmux` (or `screen`) so they carry on if your connection drops.
 
 Then add a Cloudflare A record `tiles` → the server's IP (DNS only), and in Nginx Proxy Manager a
 proxy host `tiles.caliphaterides.com.ng` → `caliphate-tiles` port `3000` with an SSL certificate.
 
-App (`.env` and `eas.json`):
+App (`.env` and `eas.json`). The tiles answer at `/caliphate`; `/sokoto` still works for app versions already on phones:
 
 ```bash
-EXPO_PUBLIC_MAP_TILES_URL=https://tiles.caliphaterides.com.ng/sokoto
+EXPO_PUBLIC_MAP_TILES_URL=https://tiles.caliphaterides.com.ng/caliphate
 EXPO_PUBLIC_MAP_GLYPHS_URL=https://tiles.caliphaterides.com.ng/font/{fontstack}/{range}
 ```
 
 Backend `.env` (the admin's "Map places" page):
 
 ```bash
-MAP_TILES_URL=https://tiles.caliphaterides.com.ng/sokoto
+MAP_TILES_URL=https://tiles.caliphaterides.com.ng/caliphate
 MAP_GLYPHS_URL=https://tiles.caliphaterides.com.ng/font/{fontstack}/{range}
 ```
 
-Outside Sokoto State the app switches to the public map by itself, so testers elsewhere still see streets.
-Monthly refresh: `./scripts/01-download.sh && ./scripts/04-routing.sh && ./scripts/vps-tiles.sh --rebuild`,
-then `docker restart caliphate-routing`.
+Outside our states the app switches to the public map by itself, so testers elsewhere still see streets.
+Monthly refresh: `./scripts/01-download.sh && ./scripts/vps-tiles.sh --rebuild && ./scripts/vps-routing.sh --rebuild`.
+
+**Adding another state later:** add its box (west, south, east, north) to `regions.geojson`, widen `BBOX` in
+`.env` to include it, run the three commands above, and add the city to the backend and app (`CITIES`).
 
 ## Point the app at it
 
 In the app's `.env` (replace the domain with yours):
 
 ```bash
-EXPO_PUBLIC_MAP_TILES_URL=https://maps.caliphaterides.ng/tiles/sokoto
+EXPO_PUBLIC_MAP_TILES_URL=https://maps.caliphaterides.ng/tiles/caliphate
 EXPO_PUBLIC_MAP_GLYPHS_URL=https://maps.caliphaterides.ng/tiles/font/{fontstack}/{range}
 EXPO_PUBLIC_ROUTING_URL=https://maps.caliphaterides.ng/osrm
 EXPO_PUBLIC_SEARCH_URL=https://maps.caliphaterides.ng/photon
@@ -117,7 +127,7 @@ You can also improve Sokoto's map yourself: anyone can add missing streets, mark
 
 | Address | What |
 |---|---|
-| `/tiles/sokoto` | Map tiles (TileJSON) |
+| `/tiles/caliphate` | Map tiles (TileJSON; `/tiles/sokoto` still works) |
 | `/tiles/font/{fontstack}/{range}` | Label fonts |
 | `/osrm/route/v1/driving/{lng},{lat};{lng},{lat}` | A route |
 | `/photon/api?q=…` | Place search |

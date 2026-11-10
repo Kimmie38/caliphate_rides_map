@@ -1,0 +1,10 @@
+# Martin (tile server) settings. One tile set for all our states, under two names:
+#   caliphate  the name for new app versions
+#   sokoto     the old name, so app versions already on phones keep working
+listen_addresses: "0.0.0.0:3000"
+mbtiles:
+  sources:
+    caliphate: /data/caliphate.mbtiles
+    sokoto: /data/caliphate.mbtiles
+fonts:
+  - /fonts
