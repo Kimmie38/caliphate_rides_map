@@ -5,6 +5,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 # The states we build (regions.geojson): Sokoto, Kano, Kaduna, FCT (Abuja) and Plateau, each with a margin.
 REGIONS="${REGIONS:-regions.geojson}"
 # The box around all of them (west,south,east,north), for the tile builder.
+# An older .env may still have the Sokoto-only box: that would build a Sokoto-only map, so it's ignored.
+[ "${BBOX:-}" = "3.9,11.4,7.0,14.0" ] && BBOX=""
 BBOX="${BBOX:-3.9,8.2,10.7,14.0}"
 OSM_URL="${OSM_URL:-https://download.geofabrik.de/africa/nigeria-latest.osm.pbf}"
 mkdir -p data

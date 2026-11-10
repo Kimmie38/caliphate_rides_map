@@ -4,9 +4,14 @@
 need curl "Install it with: sudo apt install curl"
 need osmium "Install it with: sudo apt install osmium-tool"
 
-echo "Downloading Nigeria OpenStreetMap data (a few hundred MB)…"
-curl -L --fail -o data/nigeria.osm.pbf.part "$OSM_URL"
-mv data/nigeria.osm.pbf.part data/nigeria.osm.pbf
+# ./scripts/01-download.sh --cut-only   uses the Nigeria file already downloaded (no new download)
+if [ "${1:-}" = "--cut-only" ] && [ -s data/nigeria.osm.pbf ]; then
+  echo "Using the Nigeria file already here ($(du -h data/nigeria.osm.pbf | cut -f1))."
+else
+  echo "Downloading Nigeria OpenStreetMap data (about 800 MB)…"
+  curl -L --fail -o data/nigeria.osm.pbf.part "$OSM_URL"
+  mv data/nigeria.osm.pbf.part data/nigeria.osm.pbf
+fi
 
 echo "Cutting out Sokoto, Kano, Kaduna, FCT (Abuja) and Plateau…"
 osmium extract --polygon "$REGIONS" --strategy smart --overwrite -o data/area.osm.pbf data/nigeria.osm.pbf

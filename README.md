@@ -97,8 +97,8 @@ MAP_GLYPHS_URL=https://tiles.caliphaterides.com.ng/font/{fontstack}/{range}
 Outside our states the app switches to the public map by itself, so testers elsewhere still see streets.
 Monthly refresh: `./scripts/01-download.sh && ./scripts/vps-tiles.sh --rebuild && ./scripts/vps-routing.sh --rebuild`.
 
-**Adding another state later:** add its box (west, south, east, north) to `regions.geojson`, widen `BBOX` in
-`.env` to include it, run the three commands above, and add the city to the backend and app (`CITIES`).
+**Adding another state later:** add its box (west, south, east, north) to `regions.geojson` (boxes must
+not overlap: osmium leaves out any area two boxes share), widen `BBOX` in `.env` to include it, run the three commands above, and add the city to the backend and app (`CITIES`).
 
 ## Point the app at it
 
